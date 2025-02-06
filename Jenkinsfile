@@ -16,11 +16,11 @@ pipeline {
 
         stage('Set Up Python Environment') {
             steps {
-                // Use bash to activate the virtual environment
+                // Create and activate the virtual environment
                 script {
                     sh '''
                         python3 -m venv $VENV_DIR
-                        bash -c "source $VENV_DIR/bin/activate"
+                        . $VENV_DIR/bin/activate
                     '''
                 }
             }
@@ -31,7 +31,8 @@ pipeline {
                 // Install required Python dependencies
                 script {
                     sh '''
-                        bash -c "source $VENV_DIR/bin/activate"
+                        . $VENV_DIR/bin/activate
+                        pip install --upgrade pip
                         pip install -r requirements.txt
                     '''
                 }
@@ -43,7 +44,7 @@ pipeline {
                 // Run your tests (e.g., using pytest)
                 script {
                     sh '''
-                        bash -c "source $VENV_DIR/bin/activate"
+                        . $VENV_DIR/bin/activate
                         pytest
                     '''
                 }
@@ -55,7 +56,7 @@ pipeline {
                 // Deploy the application (this step depends on your deployment method)
                 script {
                     sh '''
-                        bash -c "source $VENV_DIR/bin/activate"
+                        . $VENV_DIR/bin/activate
                         python deploy.py  // Your deploy script or commands
                     '''
                 }
@@ -67,7 +68,10 @@ pipeline {
         always {
             // Clean up actions (e.g., deactivate venv)
             echo 'Cleaning up.'
-            sh 'deactivate || true'
+            sh '''
+                . $VENV_DIR/bin/activate || true
+                deactivate || true
+            '''
         }
     }
 }
